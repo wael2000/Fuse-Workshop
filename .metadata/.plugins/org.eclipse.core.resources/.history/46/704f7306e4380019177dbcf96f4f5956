@@ -1,0 +1,92 @@
+<beans xmlns="http://www.springframework.org/schema/beans" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:cxf="http://camel.apache.org/schema/cxf"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
+        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <camelContext id="cxfrs" xmlns="http://camel.apache.org/schema/spring">
+
+        <dataFormats>
+            <xmljson id="xmljson"/>
+        </dataFormats>
+        
+        <restConfiguration component="jetty" host="localhost" port="8081" bindingMode="json">
+        </restConfiguration>
+
+        <rest path="/jaxrs">
+
+          <get uri="/account/{arg0}" 
+            type="java.lang.String"
+            outType="sample.ws.service.Account" 
+            >
+            <to uri="direct:getAccount"/>
+          </get>
+
+          <get uri="/accounts/{arg0}" 
+            type="sample.ws.service.GetAccounts"
+            outType="sample.ws.service.Account[]" 
+            >
+            <to uri="direct:getAccounts"/>
+          </get>
+
+          <get uri="/hello/{arg0}" 
+            type="java.lang.String"
+            outType="java.lang.String" 
+            >
+            <to uri="direct:sayHello"/>
+          </get>
+        </rest>
+
+        <route id="getAccount">
+            <from uri="direct:getAccount" />
+            <log loggingLevel="INFO" message="getAccount"/>
+            <setBody>
+                <simple>${header.arg0}</simple>
+            </setBody>
+            <unmarshal>
+                <json library="Jackson" unmarshalTypeName="java.lang.String"/>
+            </unmarshal>
+            <to uri="cxf://http://localhost:8090/service/accountService?serviceClass=sample.ws.service.Hello&amp;defaultOperationName=getAccount"/>
+            <setHeader headerName="Content-Type">
+               <constant>application/json</constant>
+            </setHeader>
+            <setBody>
+                <simple>${body[0]}</simple>
+            </setBody>
+        </route>
+        
+        <route id="getAccounts">
+            <from uri="direct:getAccounts" />
+            <log loggingLevel="INFO" message="getAccounts"/>
+            <to uri="cxf://http://localhost:8090/service/accountService?serviceClass=sample.ws.service.Hello&amp;defaultOperationName=getAccounts"/>
+            <setHeader headerName="Content-Type">
+               <constant>application/json</constant>
+            </setHeader>
+            <setBody>
+                <simple>${body[0]}</simple>
+            </setBody>
+        </route>
+        
+        <route id="sayHello">
+            <from uri="direct:sayHello" />
+            <log loggingLevel="INFO" message="sayHello"/>
+            <setBody>
+                <simple>${header.arg0}</simple>
+            </setBody>
+            <unmarshal>
+                <json library="Jackson" unmarshalTypeName="java.lang.String"/>
+            </unmarshal>
+            <to uri="cxf://http://localhost:8090/service/accountService?serviceClass=sample.ws.service.Hello&amp;defaultOperationName=sayHello"/>
+            <setHeader headerName="Content-Type">
+               <constant>text/plain</constant>
+            </setHeader>
+            <setBody>
+                <simple>${body}</simple>
+            </setBody>
+        </route>
+        
+    </camelContext>
+
+</beans>

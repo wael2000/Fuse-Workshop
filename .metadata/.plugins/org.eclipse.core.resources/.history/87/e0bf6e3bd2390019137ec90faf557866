@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:cxf="http://camel.apache.org/schema/cxf"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd         http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <camelContext id="cxfrs" xmlns="http://camel.apache.org/schema/spring">
+        <dataFormats>
+            <xmljson id="xmljson"/>
+        </dataFormats>
+        <restConfiguration bindingMode="json" component="jetty"
+            host="localhost" port="8080"/>
+        <rest id="rest-6734ab0a-6640-4850-a3d3-89a11a6817b9" path="/jaxrs">
+            <get id="get-975a666a-3606-4ad8-9043-7a74e708d6ee"
+                outType="sample.ws.service.Account"
+                type="java.lang.String" uri="/account/{arg0}">
+                <to uri="direct:getAccount"/>
+            </get>
+            <get id="get-f53f578d-7294-4ba4-b208-2a1f4be85d59"
+                outType="sample.ws.service.Account[]"
+                type="sample.ws.service.GetAccounts" uri="/accounts">
+                <to uri="direct:getAccounts"/>
+            </get>
+            <get id="get-534a66d4-eb57-4c74-be84-3af0896c79cb"
+                outType="java.lang.String" type="java.lang.String" uri="/hello/{arg0}">
+                <to uri="direct:sayHello"/>
+            </get>
+        </rest>
+        <route id="getAccount">
+            <from id="_from1" uri="direct:getAccount"/>
+            <log id="_log1" loggingLevel="INFO" message="getAccount"/>
+            <setBody id="_setBody1">
+                <simple>${header.arg0}</simple>
+            </setBody>
+            <unmarshal id="_unmarshal1">
+                <json library="Jackson" unmarshalTypeName="java.lang.String"/>
+            </unmarshal>
+            <to id="_to1" uri="cxf://http://localhost:8090/service/accountService?serviceClass=sample.ws.service.Hello&amp;defaultOperationName=getAccount"/>
+            <setHeader headerName="Content-Type" id="_setHeader1">
+                <constant>application/json</constant>
+            </setHeader>
+            <setBody id="_setBody2">
+                <simple>${body[0]}</simple>
+            </setBody>
+        </route>
+        <route id="getAccounts">
+            <from id="_from2" uri="direct:getAccounts"/>
+            <log id="_log2" loggingLevel="INFO" message="getAccounts"/>
+             <setBody id="_setBody11">
+                 <simple resultType="Object[]"/>
+            </setBody>
+            <unmarshal id="_unmarshal11">
+                <json library="Jackson" unmarshalTypeName="Object[]"/>
+            </unmarshal>
+            
+  
+            <to id="_to2" uri="cxf://http://localhost:8090/service/accountService?serviceClass=sample.ws.service.Hello&amp;defaultOperationName=getAccounts"/>
+            <setHeader headerName="Content-Type" id="_setHeader2">
+                <constant>application/json</constant>
+            </setHeader>
+            <setBody id="_setBody3">
+                <simple>${body[0]}</simple>
+            </setBody>
+        </route>
+        <route id="sayHello">
+            <from id="_from3" uri="direct:sayHello"/>
+            <log id="_log3" loggingLevel="INFO" message="sayHello"/>
+            <setBody id="_setBody4">
+                <simple>${header.arg0}</simple>
+            </setBody>
+            <unmarshal id="_unmarshal2">
+                <json library="Jackson" unmarshalTypeName="java.lang.String"/>
+            </unmarshal>
+            <to id="_to3" uri="cxf://http://localhost:8090/service/accountService?serviceClass=sample.ws.service.Hello&amp;defaultOperationName=sayHello"/>
+            <setHeader headerName="Content-Type" id="_setHeader3">
+                <constant>text/plain</constant>
+            </setHeader>
+            <setBody id="_setBody5">
+                <simple>${body}</simple>
+            </setBody>
+        </route>
+    </camelContext>
+</beans>
